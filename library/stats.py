@@ -232,8 +232,30 @@ class CPU:
                                                                                                      None))
             )
 
+    @staticmethod
+    def power():
+        if THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("SHOW", False):
 
-def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
+            cpu_temp = f"{int(sensors.Cpu.power()):>3}"
+            if THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("SHOW_UNIT", True):
+                cpu_temp += "W"
+
+            display.lcd.DisplayText(
+                text=cpu_temp,
+                x=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("X", 0),
+                y=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("Y", 0),
+                font=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("FONT",
+                                                                           "roboto-mono/RobotoMono-Regular.ttf"),
+                font_size=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("FONT_SIZE", 10),
+                font_color=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("FONT_COLOR", (0, 0, 0)),
+                background_color=THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("BACKGROUND_COLOR",
+                                                                                       (255, 255, 255)),
+                background_image=get_full_path(THEME_DATA['PATH'],
+                                               THEME_DATA['STATS']['CPU']['POWER']['TEXT'].get("BACKGROUND_IMAGE",
+                                                                                                     None))
+            )
+
+def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature, power):
     if THEME_DATA['STATS']['GPU']['PERCENTAGE']['GRAPH'].get("SHOW", False):
         if math.isnan(load):
             logger.warning("Your GPU load is not supported yet")
@@ -349,13 +371,36 @@ def display_gpu_stats(load, memory_percentage, memory_used_mb, temperature):
                                                THEME_DATA['STATS']['GPU']['TEMPERATURE']['TEXT'].get("BACKGROUND_IMAGE",
                                                                                                      None))
             )
+    if THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("SHOW", False):
+        if math.isnan(power):
+            logger.warning("Your GPU POWER is not supported yet")
+            THEME_DATA['STATS']['GPU']['POWER']['TEXT']['SHOW'] = False
+        else:
+            temp_text = f"{int(power):>3}"
+            if THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("SHOW_UNIT", True):
+                temp_text += "W"
+
+            display.lcd.DisplayText(
+                text=temp_text,
+                x=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("X", 0),
+                y=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("Y", 0),
+                font=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("FONT",
+                                                                           "roboto-mono/RobotoMono-Regular.ttf"),
+                font_size=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("FONT_SIZE", 10),
+                font_color=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("FONT_COLOR", (0, 0, 0)),
+                background_color=THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("BACKGROUND_COLOR",
+                                                                                       (255, 255, 255)),
+                background_image=get_full_path(THEME_DATA['PATH'],
+                                               THEME_DATA['STATS']['GPU']['POWER']['TEXT'].get("BACKGROUND_IMAGE",
+                                                                                                     None))
+            )
 
 
 class Gpu:
     @staticmethod
     def stats():
-        load, memory_percentage, memory_used_mb, temperature = sensors.Gpu.stats()
-        display_gpu_stats(load, memory_percentage, memory_used_mb, temperature)
+        load, memory_percentage, memory_used_mb, temperature, power = sensors.Gpu.stats()
+        display_gpu_stats(load, memory_percentage, memory_used_mb, temperature, power)
 
     @staticmethod
     def is_available():

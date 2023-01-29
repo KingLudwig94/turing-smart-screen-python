@@ -165,10 +165,18 @@ class Cpu(sensors.Cpu):
 
         return math.nan
 
+    @staticmethod
+    def power() -> float:
+        cpu = get_hw_and_update(Hardware.HardwareType.Cpu)
+        for sensor in cpu.Sensors:
+            if sensor.SensorType == Hardware.SensorType.Power and str(sensor.Name).startswith("Package"):
+                return float(sensor.Value)
+        return math.nan
+
 
 class Gpu(sensors.Gpu):
     @staticmethod
-    def stats() -> Tuple[float, float, float, float]:  # load (%) / used mem (%) / used mem (Mb) / temp (°C)
+    def stats() -> Tuple[float, float, float, float, float]:  # load (%) / used mem (%) / used mem (Mb) / temp (°C) / power(W)
         gpu_to_use = get_hw_and_update(Hardware.HardwareType.GpuAmd)
         if gpu_to_use is None:
             gpu_to_use = get_hw_and_update(Hardware.HardwareType.GpuNvidia)
@@ -176,12 +184,13 @@ class Gpu(sensors.Gpu):
             gpu_to_use = get_hw_and_update(Hardware.HardwareType.GpuIntel)
         if gpu_to_use is None:
             # GPU not supported
-            return math.nan, math.nan, math.nan, math.nan
+            return math.nan, math.nan, math.nan, math.nan, math.nan
 
         load = math.nan
         used_mem = math.nan
         total_mem = math.nan
         temp = math.nan
+        power = math.nan
 
         for sensor in gpu_to_use.Sensors:
             if sensor.SensorType == Hardware.SensorType.Load and str(sensor.Name).startswith("GPU Core"):
@@ -192,8 +201,13 @@ class Gpu(sensors.Gpu):
                 total_mem = float(sensor.Value)
             elif sensor.SensorType == Hardware.SensorType.Temperature and str(sensor.Name).startswith("GPU Core"):
                 temp = float(sensor.Value)
-
-        return load, (used_mem / total_mem * 100.0), used_mem, temp
+            elif sensor.SensorType == Hardware.SensorType.Power and str(sensor.Name).startswith("GPU Package"):
+                power = float(sensor.Value)
+            elif sensor.SensorType == Hardware.SensorType.Factor and str(sensor.Name).startswith("Fullscreen FPS"):
+                fps = float(sensor.Value)
+                if fps == -1:
+                    fps = math.nan
+        return load, (used_mem / total_mem * 100.0), used_mem, temp, power
 
     @staticmethod
     def is_available() -> bool:

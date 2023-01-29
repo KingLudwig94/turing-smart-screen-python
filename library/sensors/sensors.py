@@ -49,11 +49,16 @@ class Cpu(ABC):
     def temperature() -> float:
         pass
 
+    @staticmethod
+    @abstractmethod
+    def power() -> float:
+        pass
+
 
 class Gpu(ABC):
     @staticmethod
     @abstractmethod
-    def stats() -> Tuple[float, float, float, float]:  # load (%) / used mem (%) / used mem (Mb) / temp (°C)
+    def stats() -> Tuple[float, float, float, float, float]:  # load (%) / used mem (%) / used mem (Mb) / temp (°C) / power
         pass
 
     @staticmethod
