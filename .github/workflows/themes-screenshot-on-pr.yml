@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.10
       uses: actions/setup-python@v4
       with:
-        python-version: "3.10"
+        python-version: "3.11"
 
     - name: Install dependencies
       run: |
@@ -22,9 +22,6 @@ jobs:
 
     - name: Configure system monitor for screenshot
       run: |
-        # For tests there is no real HW: use simulated LCD mode
-        sed -i "/REVISION:/c\  REVISION: SIMU" config.yaml
-        
         # Use static data
         sed -i "/HW_SENSORS:/c\  HW_SENSORS: STATIC" config.yaml
 
@@ -40,13 +37,30 @@ jobs:
             echo "Using theme $theme"
             sed -i "/THEME:/c\  THEME: $theme" config.yaml
     
-            # Run system-monitor for 5 seconds
+            # For tests there is no real HW: use simulated LCD mode
+            # Check if theme is for 5"
+            orientation=$(grep 'DISPLAY_SIZE' $dir/theme.yaml | sed 's/ //g')
+            if [ "$orientation" == "DISPLAY_SIZE:5\"" ]; then
+              sed -i "/REVISION:/c\  REVISION: SIMU5" config.yaml
+            else
+              sed -i "/REVISION:/c\  REVISION: SIMU" config.yaml
+            fi
+        
+            # Run system-monitor for 10 seconds
             python3 main.py > output.log 2>&1 &
-            sleep 5
+            sleep 10
             killall -9 python3
           
             # Rename screen capture
             cp screencap.png "screenshot-$theme.png"
+        
+            # Compare with original theme preview to detect changes, generate a diff
+            if [ -f "$dir/preview.png" ]; then
+              python3 tools/compare-images.py "screenshot-$theme.png" "$dir/preview.png" "diff-$theme.png"
+              if [ -f "diff-$theme.png" ]; then
+                echo "::warning::$theme theme rendering has changed, check if it is intentional or a side-effect. A diff is included in the job artifacts."
+              fi
+            fi
           fi
         done
 
@@ -54,4 +68,6 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: themes-screenshots
-        path: screenshot-*.png
+        path: |
+          screenshot-*.png
+          diff-*.png

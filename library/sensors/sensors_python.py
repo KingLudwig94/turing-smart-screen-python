@@ -1,4 +1,4 @@
-# turing-smart-screen-python - a Python system monitor and library for 3.5" USB-C displays like Turing Smart Screen or XuanFang
+# turing-smart-screen-python - a Python system monitor and library for USB-C displays like Turing Smart Screen or XuanFang
 # https://github.com/mathoudebine/turing-smart-screen-python/
 
 # Copyright (C) 2021-2023  Matthieu Houdebine (mathoudebine)
@@ -74,7 +74,7 @@ class Cpu(sensors.Cpu):
     def is_temperature_available() -> bool:
         try:
             sensors_temps = psutil.sensors_temperatures()
-            if 'coretemp' in sensors_temps or 'k10temp' in sensors_temps or 'cpu_thermal' in sensors_temps:
+            if 'coretemp' in sensors_temps or 'k10temp' in sensors_temps or 'cpu_thermal' in sensors_temps or 'zenpower' in sensors_temps:
                 return True
             else:
                 return False
@@ -95,6 +95,9 @@ class Cpu(sensors.Cpu):
         elif 'cpu_thermal' in sensors_temps:
             # ARM CPU
             cpu_temp = sensors_temps['cpu_thermal'][0].current
+        elif 'zenpower' in sensors_temps:
+            # AMD CPU with zenpower (k10temp is in blacklist)
+            cpu_temp = sensors_temps['zenpower'][0].current
         return cpu_temp
 
 
@@ -108,6 +111,11 @@ class Gpu(sensors.Gpu):
             return GpuNvidia.stats()
         else:
             return math.nan, math.nan, math.nan, math.nan
+
+    @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
 
     @staticmethod
     def is_available() -> bool:
@@ -160,6 +168,11 @@ class GpuNvidia(sensors.Gpu):
             temperature = math.nan
 
         return load, memory_percentage, memory_used_mb, temperature
+
+    @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
 
     @staticmethod
     def is_available() -> bool:
@@ -225,6 +238,11 @@ class GpuAmd(sensors.Gpu):
 
             # Memory absolute (M) and relative (%) usage not supported by pyadl
             return load, math.nan, math.nan, temperature
+
+    @staticmethod
+    def fps() -> int:
+        # Not supported by Python libraries
+        return -1
 
     @staticmethod
     def is_available() -> bool:

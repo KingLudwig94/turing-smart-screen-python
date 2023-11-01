@@ -1,4 +1,4 @@
-# turing-smart-screen-python - a Python system monitor and library for 3.5" USB-C displays like Turing Smart Screen or XuanFang
+# turing-smart-screen-python - a Python system monitor and library for USB-C displays like Turing Smart Screen or XuanFang
 # https://github.com/mathoudebine/turing-smart-screen-python/
 
 # Copyright (C) 2021-2023  Matthieu Houdebine (mathoudebine)
@@ -144,6 +144,13 @@ def NetStats():
 def DateStats():
     # logger.debug("Refresh date stats")
     stats.Date.stats()
+
+
+@async_job("Custom_Stats")
+@schedule(timedelta(seconds=config.THEME_DATA['STATS']['CUSTOM'].get("INTERVAL", None)).total_seconds())
+def CustomStats():
+    # print("Refresh custom stats")
+    stats.Custom.stats()
 
 
 @async_job("Queue_Handler")
